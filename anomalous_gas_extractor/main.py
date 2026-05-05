@@ -7,7 +7,7 @@
 import sys
 import traceback
 import warnings
-from anomalous_gas_extractor.run_scripts.run_scripts import run_assymetry, run_deblend,\
+from anomalous_gas_extractor.run_scripts.run_scripts import run_asymmetry, run_deblend,\
     run_sofia,run_pyFAT
 
 from anomalous_gas_extractor.config.functions import process_input
@@ -41,8 +41,8 @@ def main():
         run_deblend(cfg)
 
     #run asymmetry indicators 
-    if 'assymetry' in cfg.input.steps_to_run:
-        run_assymetry(cfg)
+    if 'asymmetry' in cfg.input.steps_to_run:
+        run_asymmetry(cfg)
 
     #run pyFAT
     if 'pyfat' in cfg.input.steps_to_run:

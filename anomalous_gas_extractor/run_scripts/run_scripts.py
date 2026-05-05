@@ -7,7 +7,7 @@ from deblend_sofia_detections.deblending.sofia_functions import execute_sofia,\
 
 from deblend_sofia_detections.main import main_with_input
 
-def run_assymetry(cfg):
+def run_asymmetry(cfg):
     if cfg.input.verbose:
         print('Running assymetry indicators')
 
