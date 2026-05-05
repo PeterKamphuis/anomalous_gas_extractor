@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "package_name"
+name = "anomalous_gas_extractor"
 dynamic = ["version"]
 description = "Development Status :: 4 - Beta"
 readme = "README.md"
@@ -22,26 +22,24 @@ classifiers = [
 ]
 dependencies = [  'numpy>=1.14',
     'scipy',
-    'astropy',
     'omegaconf>=2.2.2',
     'matplotlib',
     'future-fstrings',
-
+    'pyFAT-astro>=1.0.1',
+    'deblend_sofia_detections>=0.0.4',
+    
 ]
 
 [project.urls]
-Homepage = "https://github.com/PeterKamphuis/Template_Repository"
+Homepage = "https://github.com/PeterKamphuis/anomalous_gas_extractor"
 
 [project.scripts]
-script_name = "package_name.main:main"
-
+AGE = "anomalous_gas_extractor.main:main"
 
 [tool.hatch.version]
 path = "version.py"
 
-
-
 [tool.hatch.build.targets.sdist]
 include = [
-    "/pyFAT_astro",
+    "/anomalous_gas_extractor",
 ]

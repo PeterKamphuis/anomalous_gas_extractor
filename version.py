@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
 
-PACKAGE_NAME = 'package_name'
+PACKAGE_NAME = 'AGE'
 __version__ = '0.0.0'
 
