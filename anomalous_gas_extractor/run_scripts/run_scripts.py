@@ -6,7 +6,7 @@ from deblend_sofia_detections.deblending.sofia_functions import execute_sofia,\
     load_sofia_input_file,write_sofia
 
 from deblend_sofia_detections.main import main_with_input
-
+import sys
 def run_asymmetry(cfg):
     if cfg.input.verbose:
         print('Running assymetry indicators')
@@ -74,8 +74,26 @@ def run_sofia(cfg):
                     'enable': 'true'},
         'internal': {'sofia': 'sofia'},
     })
-    execute_sofia(cfg_debl,run_directory=cfg.directories.sofia_run_directory,
+    sofia_output = execute_sofia(cfg_debl,run_directory=cfg.directories.sofia_run_directory,
         sofia_parameter_file=cfg.input.sofia_parameter_file)
+   
+    if sofia_output == 'Success':
+        sofia_logger.print_log(f'''Sofia has finished running successfully''',
+            case=['main','screen'])
+    elif sofia_output == 'No sources found':
+        sofia_logger.print_log(f'''Sofia has finished running. It didn't find any sources, you need to adapt your sofia settings''',
+            case=['main','screen'])
+        sys.exit(8)
+    elif sofia_output == 'No negative sources found, Cannot run reliability test.':
+        sofia_logger.print_log(f'''Sofia has finished running. It didn't find any negative sources, you need to adapt your sofia settings.''',
+            case=['main','screen'])
+        sys.exit(1)
+    else:
+        sofia_logger.print_log(f'''Sofia has finished running with an unexpected output: {sofia_output}. Check {cfg_debl.logging.log_directory}/sofia_output.txt for details.''',
+            case=['main','screen'])
+        sys.exit(1)
+
+    
     
 
 
