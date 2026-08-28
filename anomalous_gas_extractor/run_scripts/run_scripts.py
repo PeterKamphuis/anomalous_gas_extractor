@@ -18,7 +18,7 @@ def run_deblend(cfg):
     deblend_logger.print_log(f'Running deblend in the directory {cfg.directories.sofia_run_directory} with the sofia parameter file {cfg.input.sofia_parameter_file}')
     
     args = [f'input.sofia_parameters={cfg.directories.sofia_run_directory}{cfg.input.sofia_parameter_file}']
-    args.append(f'logging.log_directory={cfg.logging.log_directory}')
+    args.append(f'logging.log_directory={deblend_logger.log_directory}')
     args.append(f'logging.log_file=run_deblend.log')
     args.append(f'directories.run_directory={cfg.directories.sofia_run_directory}')
     args.append(f'input.use_peak_deblending=false')
