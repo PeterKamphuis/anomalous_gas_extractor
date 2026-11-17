@@ -1,12 +1,12 @@
 """Separating HI components into rotating discs and anomalous gas components.
 
 The HI of every galaxy in a data cube is divided into a regularly rotating disc
-and anomalous gas (tails, bridges, clouds). The steps are
+and anomalous gas (tails, bridges, clouds).
 
 The steps are as follows:
 
 sofia       run source finding with SoFiA-2 (run by AGE)
-deblend     deblend HI components usiing deblend_sofia_detections
+deblend     deblend HI components using deblend_sofia_detections
 asymmetry   asymmetry indicators of AGE
 components  name the deblended components after the known galaxies, select
             those to be analysed and put their labels on the cube used for
@@ -16,7 +16,7 @@ rmax        determine kinematic centre and outer radius of the rotating disc (r_
             if its regular rings are resolved and dominated by rotation
 pyfat       make tilted-ring model, limited to r_max, of every rotating disc that
             spans at least 3 beams along its major axis
-hi_mass     Estimate HI mass inside and outside the rotating disc. The disc is that of
+hi_mass     estimate HI mass inside and outside the rotating disc. The disc is that of
             the tilted-ring model or, for a rotating disc without model, the
             ellipse of Kinemetry with semi-major axis r_max
 figures     figures of all steps

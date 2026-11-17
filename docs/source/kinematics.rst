@@ -10,9 +10,9 @@ run with
    python -m anomalous_gas_extractor.anomalous_gas_extractor configuration_file=run.yml
 
 After the source finding (step ``sofia``, run by AGE) and the deblending (step
-``deblend``) the velocity fields of every deblended component is harmonically decomposed 
-to approximately determine the maximum radius beyond which the gas is not regularly 
-rotating, the discs are then modelled with pyFAT and the HI masses of the discs and of 
+``deblend``) the velocity field of every deblended component is harmonically decomposed
+to approximately determine the maximum radius beyond which the gas is not regularly
+rotating, the discs are then modelled with pyFAT and the HI masses of the discs and of
 the anomalous gas are measured.
 The steps are run in the following order; each one writes its results to disk and the
 next one reads them, so they can also be run one at a time:

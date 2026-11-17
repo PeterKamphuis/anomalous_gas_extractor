@@ -1,5 +1,4 @@
-"""Settings of the separation of rotating discs and anomalous gas.
-"""
+"""Settings of the separation of rotating discs and anomalous gas."""
 
 import copy
 import dataclasses
