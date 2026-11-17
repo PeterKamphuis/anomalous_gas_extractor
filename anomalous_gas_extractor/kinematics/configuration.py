@@ -1,9 +1,4 @@
 """Settings of the separation of rotating discs and anomalous gas.
-
-The settings of AGE (``anomalous_gas_extractor.config.config``) are extended with
-one section for every step of the analysis. Every setting carries the text that
-explains it, which is written above the setting in the file with the defaults
-(``print_examples=true``).
 """
 
 import copy
@@ -47,7 +42,9 @@ AGE_SETTINGS = {
     "input.sofia_parameter_file": "Parameter file of SoFiA-2; it names the cube (input.data). "
                                   "With Template the\ndefault settings of SoFiA-2 are used on "
                                   "cube_name",
-    "input.steps_to_run": "Steps that are run, in this order: " + ", ".join(STEPS),
+    "input.steps_to_run": "Steps that are run. The possible steps, in the order in which they "
+                          "are run:\n" + ", ".join(STEPS) + ".\nThe step asymmetry of AGE "
+                          "is not run unless it is added to the list",
     "input.ncpu": "Number of processes",
     "directories": "Directories",
     "directories.run_directory": "All output is written below this directory, which has to exist",
