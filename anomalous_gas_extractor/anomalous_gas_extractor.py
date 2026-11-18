@@ -45,7 +45,7 @@ import json
 import logging
 from typing import Callable, Dict, List, Optional
 
-from omegaconf import OmegaConf
+from omegaconf import OmegaConf,ListConfig
 
 from deblend_sofia_detections.config.config import defaults as deblend_defaults
 from deblend_sofia_detections.main import main_with_input
@@ -149,6 +149,7 @@ def deblend_arguments(cfg, log_directory: str,
     """
     if known_settings is None:
         known_settings = deblend_settings()
+    
     settings = {
         "input.sofia_parameters": f"{cfg.directories.sofia_run_directory}"
                                   f"{cfg.input.sofia_parameter_file}",
@@ -157,12 +158,10 @@ def deblend_arguments(cfg, log_directory: str,
         "directories.run_directory": cfg.directories.sofia_run_directory}
     if "internal.sofia" in known_settings:
         settings["internal.sofia"] = cfg.internal.sofia
-    if "input.use_peak_deblending" in known_settings:
-        settings["input.use_peak_deblending"] = False
     if cfg.input.known_source_table is not None:
         table_setting = ("input.manual_input_tables"
                          if "input.manual_input_tables" in known_settings else "input.tables")
-        settings[table_setting] = [cfg.input.known_source_table]
+        settings[table_setting] = cfg.input.known_source_table
     if "RUN_DEBLEND" in cfg.logging.debug_functions or "ALL" in cfg.logging.debug_functions:
         settings["logging.debug_functions"] = list(cfg.logging.debug_functions)
 
@@ -172,7 +171,12 @@ def deblend_arguments(cfg, log_directory: str,
         raise ValueError(f"deblend.options: {unknown} are not settings of the installed "
                          f"deblend_sofia_detections. Its settings are: {sorted(known_settings)}")
     settings.update(options)
-    return [f"{key}={json.dumps(value)}" for key, value in settings.items()]
+    list_config = []
+    for key, value in settings.items():
+        if isinstance(value, ListConfig):
+            value = list(value)
+        list_config.append(f"{key}={json.dumps(value)}")
+    return list_config
 
 
 def deblend(cfg) -> None:
