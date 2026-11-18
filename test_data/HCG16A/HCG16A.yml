@@ -1,0 +1,20 @@
+# Test data: the HI of the galaxy HCG 16A (MeerKAT, 15 arcsec resolution).
+# Run in a copy of this directory:
+#   python -m anomalous_gas_extractor.anomalous_gas_extractor configuration_file=HCG16A.yml
+input:
+  sofia_parameter_file: sofia_HCG16A.par      # names the cube HCG16A_cube.fits
+  known_source_table: HCG16A_galaxies.csv
+  # the cube holds one galaxy, so nothing has to be deblended
+  steps_to_run: [sofia, components, rmax, pyfat, hi_mass, figures]
+internal:                                     # the programs, with their directory if not on the search path
+  sofia: sofia
+  tirific: tirific
+  pyfat: pyFAT
+components:
+  only_named: true
+kinematics:
+  kinemetry_path: null                        # directory that holds kinemetry.py
+hi_mass:
+  distance_mpc: 49.0
+figures:
+  display_names: {HCG16A: 'HCG 16A'}

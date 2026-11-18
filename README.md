@@ -1,4 +1,4 @@
-# Package Name
+# anomalous_gas_extractor
 
 =====
 
@@ -23,38 +23,38 @@ Installation
 
 Download the source code from the Github or simply install with pip as:
 
-  	pip install package_name
+  	pip install anomalous_gas_extractor
 
 This should also install all required python dependencies.
-We recommend the use of python virtual environments. If so desired a package_name installation would look like:
+We recommend the use of python virtual environments. If so desired an anomalous_gas_extractor installation would look like:
 
-  	python3 -m venv package_name_venv
+  	python3 -m venv anomalous_gas_extractor_venv
 
-  	source package_name_venv/bin/activate.csh
+  	source anomalous_gas_extractor_venv/bin/activate.csh
 
-    pip install package_name
+    pip install anomalous_gas_extractor
 
-(In case of bash the correct middle line is 	source package_name_venv/bin/activate)
+(In case of bash the correct middle line is 	source anomalous_gas_extractor_venv/bin/activate)
 You might have to restart the env:
 
   	deactivate
 
-  	source package_name_venv/bin/activate.csh
+  	source anomalous_gas_extractor_venv/bin/activate.csh
 
-Once you have installed package_name you can check that it has been installed properly by running package_name as.
+Once you have installed anomalous_gas_extractor you can check that it has been installed properly by running anomalous_gas_extractor as.
 
-  	executable -v 
+  	AGE -v
 
 
-Running package_name_venv
+Running anomalous_gas_extractor
 ------------------
 
-You can run package_name by providing a configuration file by 
+You can run anomalous_gas_extractor by providing a configuration file by 
 
-executable configuration_file=file.yml
+    python -m anomalous_gas_extractor.anomalous_gas_extractor configuration_file=file.yml
 
 an example yaml file with all parameters can be printed by running
 
-executable print_examples=true 
+    python -m anomalous_gas_extractor.anomalous_gas_extractor print_examples=true
 
 please see the advanced input in readthe docs for an explanation of all parameters.
