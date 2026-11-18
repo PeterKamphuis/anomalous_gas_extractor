@@ -11,6 +11,6 @@ Contents
 
   Introduction, Installation & Easy use <readme.md>
   Source finding and deblending <source_finding_and_deblending.rst>
-  Kinemetry Rings <kinemetry_rings.rst>
+  Kinematics <kinematics.rst>
   Options <options.rst>
   Copyright <license.rst>
