@@ -1,5 +1,6 @@
 # -*- coding: future_fstrings -*-
 
+
 from anomalous_gas_extractor.support.logging import logger
 from omegaconf import OmegaConf
 from deblend_sofia_detections.deblending.sofia_functions import execute_sofia,\
@@ -7,6 +8,9 @@ from deblend_sofia_detections.deblending.sofia_functions import execute_sofia,\
 
 from deblend_sofia_detections.main import main_with_input
 import sys
+import os
+
+
 def run_asymmetry(cfg):
     if cfg.input.verbose:
         print('Running assymetry indicators')
@@ -21,9 +25,15 @@ def run_deblend(cfg):
     args.append(f'logging.log_directory={deblend_logger.log_directory}')
     args.append(f'logging.log_file=run_deblend.log')
     args.append(f'directories.run_directory={cfg.directories.sofia_run_directory}')
-    args.append(f'input.use_peak_deblending=false')
+    if cfg.input.known_source_table[0].lower() != 'none':
+        args.append(f'input.markers=[{', '.join(cfg.input.known_source_table)},"5 HI peaks"]')
+    else:
+        args.append(f'input.markers=["5 HI peaks"]')
+    args.append(f'general.counterpart_region="No Counterpart"')
     if cfg.input.known_source_table is not None:
-        args.append(f'input.manual_input_tables=[{', '.join(cfg.input.known_source_table)}]')
+        args.append(f'input.tables=[{', '.join(cfg.input.known_source_table)}]')
+    else:
+        args.append(f'input.tables=["None"]')
    
     deblend_logger.print_log(f'''The deblend step is being run with the following arguments: {args}''', 
         case=['debug'])
@@ -74,6 +84,8 @@ def run_sofia(cfg):
                     'enable': 'true'},
         'internal': {'sofia': 'sofia'},
     })
+    if not os.path.exists(f'{cfg.directories.sofia_run_directory}{sofia_template['output.directory']}'):
+        os.makedirs(f'{cfg.directories.sofia_run_directory}{sofia_template['output.directory']}')
     sofia_output = execute_sofia(cfg_debl,run_directory=cfg.directories.sofia_run_directory,
         sofia_parameter_file=cfg.input.sofia_parameter_file)
    
