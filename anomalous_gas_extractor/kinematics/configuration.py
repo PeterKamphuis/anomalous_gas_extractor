@@ -11,11 +11,12 @@ import psutil
 import yaml
 from omegaconf import OmegaConf
 
+import anomalous_gas_extractor
 from anomalous_gas_extractor.config import config as age_config
 from anomalous_gas_extractor.config.functions import check_paths
 
-PROGRAM = "python -m anomalous_gas_extractor.anomalous_gas_extractor"
-DEFAULT_FILE = "AGE_defaults.yml"
+PROGRAM = "AGE"
+DEFAULT_FILE = "AGE.yml"
 
 # the steps in the order in which they are run
 STEPS = ("sofia", "deblend", "asymmetry", "components", "rmax", "pyfat", "hi_mass", "figures")
@@ -323,9 +324,10 @@ def help_message() -> str:
     return f"""
 Use the program in this way:
 {PROGRAM} configuration_file=inputfile.yml   where inputfile.yml holds the settings.
-{PROGRAM} print_examples=true                writes the file {DEFAULT_FILE} with all settings,
-                                             their defaults and their explanation, in the current directory.
+{PROGRAM} print_examples=true                writes the file {DEFAULT_FILE} with all settings, their
+                                       defaults and their explanation, in the current directory.
 {PROGRAM} -h                                 prints this message.
+{PROGRAM} -v                                 prints the version.
 
 All settings can be given on the command line as well, e.g. hi_mass.distance_mpc=49
 """
@@ -366,6 +368,9 @@ def prepare_paths(cfg) -> None:
 
 def read_configuration(argv: List[str]):
     """The settings: the defaults, then the configuration file, then the command line."""
+    if "-v" in argv or "--version" in argv:
+        print(f"This is version {anomalous_gas_extractor.__version__} of the program.")
+        sys.exit()
     if "-h" in argv or "--help" in argv:
         print(help_message())
         sys.exit()

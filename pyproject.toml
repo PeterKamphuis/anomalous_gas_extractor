@@ -22,6 +22,9 @@ classifiers = [
 ]
 dependencies = [  'numpy>=1.14',
     'scipy',
+    'astropy',
+    'psutil',
+    'pyyaml',
     'omegaconf>=2.2.2',
     'matplotlib',
     'future-fstrings',
@@ -34,7 +37,7 @@ dependencies = [  'numpy>=1.14',
 Homepage = "https://github.com/PeterKamphuis/anomalous_gas_extractor"
 
 [project.scripts]
-AGE = "anomalous_gas_extractor.main:main"
+AGE = "anomalous_gas_extractor.anomalous_gas_extractor:main"
 
 [tool.hatch.version]
 path = "version.py"

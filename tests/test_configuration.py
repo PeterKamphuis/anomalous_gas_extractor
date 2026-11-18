@@ -35,6 +35,40 @@ def test_default_file_lists_every_setting_with_its_default(tmp_path, monkeypatch
     assert "sofia_run_directory" not in written.directories and "logging" not in written
 
 
+def test_the_command_age_starts_the_program():
+    project = (Path(__file__).resolve().parents[1] / "pyproject.toml").read_text()
+    assert 'AGE = "anomalous_gas_extractor.anomalous_gas_extractor:main"' in project
+    assert callable(program.main)
+
+
+def test_version_and_help_are_printed(capsys):
+    for option, expected in (("-v", "This is version"), ("--version", "This is version"),
+                             ("-h", "AGE configuration_file="), ("--help", "print_examples")):
+        with pytest.raises(SystemExit):
+            program.main([option])
+        assert expected in capsys.readouterr().out
+
+
+def test_a_configuration_file_of_age_itself_is_read(tmp_path):
+    """A file with only the settings of AGE, as written before the steps were added."""
+    settings = tmp_path / "AGE.yml"
+    settings.write_text("cube_name: null\n"
+                        "input:\n"
+                        "  known_source_table: null\n"
+                        "  sofia_parameter_file: Template\n"
+                        "  steps_to_run: [rmax, pyFAT]\n"
+                        "  verbose: true\n"
+                        "  ncpu: 4\n"
+                        "  multiprocessing: true\n"
+                        "directories:\n"
+                        f"  run_directory: {tmp_path}\n"
+                        "  sofia_run_directory: ''\n"
+                        "  data_directory: ''\n")
+    cfg = configuration.read_configuration([f"configuration_file={settings}"])
+    assert cfg.input.steps_to_run == ["rmax", "pyfat"] and cfg.input.ncpu == 4
+    assert cfg.pyfat.minimum_beams_across == 3.0
+
+
 def test_settings_are_read_from_file_and_command_line(tmp_path):
     cfg = configuration.read_configuration(
         [write_settings(tmp_path, "hi_mass:\n  distance_mpc: 49.0\n"),

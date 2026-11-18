@@ -23,6 +23,10 @@ figures     figures of all steps
 
 Run with
 
+    AGE configuration_file=run.yml
+
+or, where the command AGE is not installed, with
+
     python -m anomalous_gas_extractor.anomalous_gas_extractor configuration_file=run.yml
 
 ``print_examples=true`` writes a file with all settings and their defaults.
