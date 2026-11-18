@@ -10,7 +10,7 @@ readme = "README.md"
 license = "GPL-3.0-or-later"
 requires-python = ">=3.8"
 authors = [
-    { name = "P. Kamphuis", email = "peterkamphuisastronomy@gmail.com" },
+    { name = "P. Kamphuis, R. Ianjamasimanana", email = "peterkamphuisastronomy@gmail.com" },
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -28,8 +28,9 @@ dependencies = [  'numpy>=1.14',
     'omegaconf>=2.2.2',
     'matplotlib',
     'future-fstrings',
-    'pyFAT-astro>=1.0.1',
-    'deblend_sofia_detections>=0.0.8',
+    'pyFAT-astro>=1.0.0',
+    'deblend_sofia_detections>=1.1.0',
+    'plotbin',
     
 ]
 

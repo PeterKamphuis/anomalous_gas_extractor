@@ -10,7 +10,7 @@ from datetime import datetime
 
 @dataclass
 class Input:
-    known_source_table: Optional[str] = None
+    known_source_table: List[str] = field(default_factory=lambda: ['None'])  
     sofia_parameter_file: str = 'Template' # set this to the parameter file you want to run the original sofia with
     steps_to_run: List[str] = field(default_factory=lambda: ['sofia','deblend','asymmetry','pyFAT'])    
     verbose: bool = True

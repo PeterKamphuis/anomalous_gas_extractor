@@ -6,12 +6,12 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'package_name'
+project = 'anomalous_gas_extractor'
 copyright = '2023, P. Kamphuis'
 author = 'P. Kamphuis'
 
 release = '0.0'
-version = '0.0.0'
+version = '0.0.1'
 
 # -- General configuration
 

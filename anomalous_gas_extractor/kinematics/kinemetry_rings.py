@@ -41,6 +41,8 @@ def set_kinemetry_path(path: Optional[str]) -> None:
     _kinemetry_path = path
     if path and path not in sys.path:
         sys.path.insert(0, path)
+    
+      
 
 
 def get_kinemetry_path() -> Optional[str]:

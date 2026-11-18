@@ -185,7 +185,7 @@ def read_centre_table(table_file: str) -> Dict[str, Tuple[float, float]]:
 
 def _known_source_table(cfg) -> Optional[str]:
     known = cfg.input.known_source_table
-    if known is None:
+    if known[0].lower() == "none":
         return None
     return _absolute(known if isinstance(known, str) else known[0], cfg)
 
@@ -436,6 +436,7 @@ def _log_component(result: ComponentResult) -> None:
 
 def run_rmax(cfg) -> List[ComponentResult]:
     """Derive r_max of all components and classify them; writes the r_max tables."""
+    
     kinemetry_rings.set_kinemetry_path(cfg.kinematics.kinemetry_path)
     kinemetry_rings.load_kinemetry()
     cube = load_cube(cfg)
