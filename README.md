@@ -51,10 +51,10 @@ Running anomalous_gas_extractor
 
 You can run anomalous_gas_extractor by providing a configuration file by 
 
-    python -m anomalous_gas_extractor.anomalous_gas_extractor configuration_file=file.yml
+    AGE configuration_file=file.yml
 
 an example yaml file with all parameters can be printed by running
 
-    python -m anomalous_gas_extractor.anomalous_gas_extractor print_examples=true
+    AGE print_examples=true
 
 please see the advanced input in readthe docs for an explanation of all parameters.

@@ -1,6 +1,6 @@
 # Test data: the HI of the galaxy HCG 16A (MeerKAT, 15 arcsec resolution).
 # Run in a copy of this directory:
-#   python -m anomalous_gas_extractor.anomalous_gas_extractor configuration_file=HCG16A.yml
+#   AGE configuration_file=HCG16A.yml kinematics.kinemetry_path=/directory/with/kinemetry.py
 input:
   sofia_parameter_file: sofia_HCG16A.par      # names the cube HCG16A_cube.fits
   known_source_table: HCG16A_galaxies.csv

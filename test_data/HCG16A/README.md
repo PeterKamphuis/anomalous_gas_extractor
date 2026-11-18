@@ -20,7 +20,7 @@ rewrites the parameter file of SoFiA-2:
 ```
 cp -r test_data/HCG16A /path/to/work/HCG16A
 cd /path/to/work/HCG16A
-python -m anomalous_gas_extractor.anomalous_gas_extractor configuration_file=HCG16A.yml \
+AGE configuration_file=HCG16A.yml \
     kinematics.kinemetry_path=/path/to/the/directory/with/kinemetry.py
 ```
 

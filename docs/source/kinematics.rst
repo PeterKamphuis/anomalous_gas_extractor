@@ -7,7 +7,7 @@ run with
 
 .. code-block:: text
 
-   python -m anomalous_gas_extractor.anomalous_gas_extractor configuration_file=run.yml
+   AGE configuration_file=run.yml
 
 After the source finding (step ``sofia``, run by AGE) and the deblending (step
 ``deblend``) the velocity field of every deblended component is harmonically decomposed
@@ -63,9 +63,9 @@ configuration file:
 
 .. code-block:: text
 
-   python -m anomalous_gas_extractor.anomalous_gas_extractor print_examples=true
+   AGE print_examples=true
 
-writes the file ``AGE_defaults.yml`` in the current directory, with all
+writes the file ``AGE.yml`` in the current directory, with all
 settings, their defaults and a line of explanation above every setting. Change
 what is needed and give the file as ``configuration_file``. Every setting can
 also be given on the command line, e.g. ``hi_mass.distance_mpc=49``.
