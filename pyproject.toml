@@ -29,7 +29,7 @@ dependencies = [  'numpy>=1.14',
     'matplotlib',
     'future-fstrings',
     'pyFAT-astro>=1.0.0',
-    'deblend_sofia_detections>=1.1.0',
+    'deblend_sofia_detections>=1.1.1',
     'plotbin',
     
 ]
