@@ -1,0 +1,36 @@
+# Test data: the HI of the galaxies HCG 16A and HCG 16B (MeerKAT, 15 arcsec resolution),
+# which SoFiA-2 finds as one detection.
+# Run in a copy of this directory:
+#   AGE configuration_file=HCG16AB.yml kinematics.kinemetry_path=/directory/with/kinemetry.py
+input:
+  sofia_parameter_file: sofia_HCG16AB.par     # names the cube HCG16AB_cube.fits
+  known_source_table: HCG16AB_galaxies.csv
+  # the tilted-ring models (step pyfat) take most of the time and are left out of this
+  # fast test; add pyfat after rmax to make them
+  steps_to_run: [sofia, deblend, components, rmax, hi_mass, figures]
+internal:                                     # the programs, with their directory if not on the search path
+  sofia: sofia
+  tirific: tirific
+  pyfat: pyFAT
+deblend:
+  options:                                    # settings of deblend_sofia_detections
+    input:
+      # the detection is divided on the galaxies of the optical image and on the HI peaks
+      markers: [optical image, 8 HI peaks]
+      optical_images: [HCG16AB_optical.fits]
+    general:
+      # no catalogue is downloaded, so the test needs no internet access. With GAIA in this
+      # list the stars of the optical image are masked
+      internet_repository: ['None']
+      # a piece is kept if a galaxy of the table lies inside its ellipse
+      counterpart_region: Full_Ellipse
+      spectroscopic_manual_counterparts: false
+      originals: true
+components:
+  only_named: true
+kinematics:
+  kinemetry_path: null                        # directory that holds kinemetry.py
+hi_mass:
+  distance_mpc: 49.0
+figures:
+  display_names: {HCG16A: 'HCG 16A', HCG16B: 'HCG 16B'}

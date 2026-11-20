@@ -4,7 +4,7 @@ import os
 import pytest
 from omegaconf import OmegaConf
 
-from anomalous_gas_extractor.kinematics.configuration import Configuration
+from anomalous_gas_extractor.config.config import defaults
 from anomalous_gas_extractor.kinematics import fat, pipeline
 
 from conftest import DISC, VSYS_KMS
@@ -13,7 +13,7 @@ from conftest import DISC, VSYS_KMS
 @pytest.fixture
 def cfg(cube_files, tmp_path):
     cube_file, mask_file = cube_files
-    configuration = OmegaConf.structured(Configuration)
+    configuration = OmegaConf.structured(defaults)
     configuration.directories.run_directory = str(tmp_path) + "/"
     configuration.kinematics.cube = cube_file
     configuration.kinematics.mask = mask_file

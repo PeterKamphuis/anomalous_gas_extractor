@@ -7,7 +7,7 @@ Introduction
 ``anomalous-gas-extractor`` can use a YAML configuration file to control
 source finding, deblending, component creation, kinematics, tilted-ring
 modelling, HI masses and figures. The defaults are in
-``anomalous_gas_extractor/kinematics/configuration.py``.
+``anomalous_gas_extractor/config/config.py``.
 
 Run the program with
 
@@ -57,11 +57,13 @@ Input keywords
 
 **known_source_table**
 
-  *list of str, optional, default = ['None']*
+  *str or list of str, optional, default = ['None']*
 
   Comma-separated table with the known galaxies: name, right ascension and
-  declination in degrees, followed by any other columns. The objects name the
-  components and provide the first guess for their centres.
+  declination in degrees, followed by any other columns. One file name or a
+  list of file names; relative names start at the run directory. The objects
+  of the first table name the components and provide the first guess for
+  their centres; all tables are passed on to the deblending.
 
 **sofia_parameter_file**
 
@@ -202,16 +204,16 @@ Step deblend
   *dict, optional, default = {}*
 
   Settings for ``deblend_sofia_detections``, in the layout of that package's
-  configuration file. These settings are passed on unchanged and must exist in
-  the installed version of the package. For example:
+  configuration file. These settings are passed on unchanged and must be
+  settings of that package. For example:
 
   .. code-block:: yaml
 
      deblend:
        options:
          input:
-           manual_optical_image: [image.fits]
-           use_peak_deblending: true
+           markers: [optical image, 5 HI peaks]
+           optical_images: [image.fits]
 
 Step components
 ---------------

@@ -5,9 +5,10 @@ import pytest
 from astropy.io import fits
 from omegaconf import OmegaConf
 
-from anomalous_gas_extractor.kinematics.configuration import Configuration
+from anomalous_gas_extractor.config.config import defaults
 from anomalous_gas_extractor.kinematics import components, pipeline
-from anomalous_gas_extractor.anomalous_gas_extractor import deblend_arguments, flatten_options
+from anomalous_gas_extractor.run_scripts.run_scripts import (deblend_arguments, deblend_settings,
+                                                            flatten_options)
 
 from conftest import PIXEL_DEG, cube_header
 
@@ -43,6 +44,12 @@ def test_sofia_products_are_read_from_the_parameter_file(tmp_path):
     products = components.sofia_products(str(parameters))
     assert products.cube_file == "/data/cube.fits"
     assert products.mask_file == "/out/cube_mask.fits"
+    # relative names start at the directory of the parameter file, where SoFiA-2 is run
+    parameters.write_text("input.data = cube.fits\noutput.directory = found\n"
+                          "output.filename = group\n")
+    products = components.sofia_products(str(parameters))
+    assert products.cube_file == f"{tmp_path}/cube.fits"
+    assert products.mask_file == f"{tmp_path}/found/group_mask.fits"
     parameters.write_text("output.directory = /out\n")
     with pytest.raises(ValueError):
         components.sofia_products(str(parameters))
@@ -106,6 +113,31 @@ def test_components_are_named_after_the_known_sources():
 
     components.measure_components(ordered, data, kept)
     assert kept[0].n_voxels == 960 and kept[0].summed_intensity == pytest.approx(960.0)
+
+
+def test_separate_pieces_with_their_own_known_source_become_components():
+    header = cube_header(SHAPE)
+    celestial = components.celestial_wcs(header)
+    data = np.ones(SHAPE, dtype=np.float32)
+    known = {"Upper": sky_position(header, 8, 16), "Lower": sky_position(header, 8, 8)}
+    # the deblending gave one label to two pieces that do not touch
+    labels = np.zeros(SHAPE, dtype=np.int32)
+    labels[5:15, 14:19, 5:12] = 1
+    labels[5:15, 6:11, 5:12] = 1
+    labels[5:15, 2:4, 20:24] = 1          # a third piece without a known source
+    parts = [components.Component(1, "", 1, 7)]
+    components.separate_pieces(labels, data, celestial, parts, known)
+    components.name_components(labels, data, celestial, parts, known)
+    assert [(part.label, part.name, part.deblend_label) for part in parts] == [
+        (1, "Upper", 7), (2, "Lower", 7)]
+    assert labels[10, 16, 8] == 1 and labels[10, 8, 8] == 2 and labels[10, 3, 22] == 1
+
+    # two known sources in one connected piece stay one component
+    joined = np.zeros(SHAPE, dtype=np.int32)
+    joined[5:15, 6:19, 5:12] = 1
+    parts = [components.Component(1, "", 1, 7)]
+    components.separate_pieces(joined, data, celestial, parts, known)
+    assert len(parts) == 1 and joined.max() == 1
 
 
 def test_unnamed_components_of_one_detection_are_numbered():
@@ -198,7 +230,7 @@ def deblended_run(tmp_path):
                                         f"output.directory = {output}\noutput.filename = cube\n")
     (tmp_path / "known.csv").write_text("#Name,RA,DEC\nUpper,%.6f,%.6f\nLower,%.6f,%.6f\n"
                                         % (sky_position(header, 8, 16) + sky_position(header, 8, 8)))
-    return OmegaConf.merge(OmegaConf.structured(Configuration), {
+    return OmegaConf.merge(OmegaConf.structured(defaults), {
         "input": {"sofia_parameter_file": "sofia.par", "known_source_table": f"{tmp_path}/known.csv"},
         "directories": {"run_directory": f"{tmp_path}/", "sofia_run_directory": f"{tmp_path}/"}})
 
@@ -253,18 +285,18 @@ def test_step_components_carries_the_labels_to_another_cube(deblended_run, tmp_p
     assert pipeline.load_cube(cfg).labels.shape == shape
 
 
-OLD_SETTINGS = {"input.sofia_parameters", "input.manual_input_tables", "input.use_peak_deblending",
-                "input.maximum_no_peaks", "logging.log_directory", "logging.log_file",
-                "directories.run_directory"}
-NEW_SETTINGS = {"input.sofia_parameters", "input.tables", "input.markers",
-                "general.counterpart_region", "logging.log_directory", "logging.log_file",
-                "directories.run_directory"}
+DEBLEND_SETTINGS = {"input.sofia_parameters", "input.tables", "input.markers",
+                    "general.counterpart_region", "logging.log_directory", "logging.log_file",
+                    "directories.run_directory", "directories.ancillary_directory",
+                    "internal.sofia"}
 
 
-def deblend_configuration(options):
-    return OmegaConf.merge(OmegaConf.structured(Configuration), {
-        "input": {"sofia_parameter_file": "sofia.par", "known_source_table": "/tables/known.csv"},
-        "directories": {"sofia_run_directory": "/run/"}, "deblend": {"options": options}})
+def deblend_configuration(options, known_source_table="/tables/known.csv"):
+    return OmegaConf.merge(OmegaConf.structured(defaults), {
+        "input": {"sofia_parameter_file": "sofia.par", "known_source_table": known_source_table},
+        "internal": {"sofia": "/opt/sofia"},
+        "directories": {"run_directory": "/work/", "sofia_run_directory": "/run/"},
+        "deblend": {"options": options}})
 
 
 def test_flatten_options():
@@ -275,22 +307,37 @@ def test_flatten_options():
 def test_deblend_options_are_passed_on_unchanged():
     cfg = deblend_configuration({"input": {"markers": ["Optical Image", "8 HI peaks"]},
                                  "general": {"counterpart_region": "Full_Ellipse"}})
-    parsed = OmegaConf.from_cli(deblend_arguments(cfg, "/run/Logs", NEW_SETTINGS))
+    parsed = OmegaConf.from_cli(deblend_arguments(cfg, "/run/Logs", DEBLEND_SETTINGS))
     assert parsed.input.sofia_parameters == "/run/sofia.par"
     assert parsed.input.tables == ["/tables/known.csv"]
     assert parsed.input.markers == ["Optical Image", "8 HI peaks"]
     assert parsed.general.counterpart_region == "Full_Ellipse"
-    assert "use_peak_deblending" not in parsed.input
+    assert parsed.internal.sofia == "/opt/sofia"
+    assert parsed.directories.run_directory == "/run/"
+    # what the deblending downloads is kept below the run directory of AGE
+    assert parsed.directories.ancillary_directory == "/work/ancillary_data"
 
 
-def test_deblend_arguments_follow_the_installed_version():
-    cfg = deblend_configuration({"input": {"maximum_no_peaks": 8, "use_peak_deblending": True}})
-    parsed = OmegaConf.from_cli(deblend_arguments(cfg, "/run/Logs", OLD_SETTINGS))
-    assert parsed.input.manual_input_tables == ["/tables/known.csv"]
-    assert "internal" not in parsed
-    cfg.internal.sofia = "/opt/sofia"
-    with_sofia = OmegaConf.from_cli(deblend_arguments(cfg, "/run/Logs", OLD_SETTINGS | {"internal.sofia"}))
-    assert with_sofia.internal.sofia == "/opt/sofia"
-    assert parsed.input.use_peak_deblending is True and parsed.input.maximum_no_peaks == 8
-    with pytest.raises(ValueError):
-        deblend_arguments(cfg, "/run/Logs", NEW_SETTINGS)
+def test_deblend_tables_are_found_from_the_run_directory_of_the_deblending():
+    one = deblend_configuration({}, known_source_table="known.csv")
+    assert OmegaConf.from_cli(
+        deblend_arguments(one, "/run/Logs", DEBLEND_SETTINGS)).input.tables == ["/work/known.csv"]
+    several = deblend_configuration({}, known_source_table=["known.csv", "/tables/more.csv"])
+    assert OmegaConf.from_cli(deblend_arguments(several, "/run/Logs", DEBLEND_SETTINGS)
+                              ).input.tables == ["/work/known.csv", "/tables/more.csv"]
+    for nothing in (None, ["None"], "none"):
+        cfg = deblend_configuration({}, known_source_table=nothing)
+        assert OmegaConf.from_cli(
+            deblend_arguments(cfg, "/run/Logs", DEBLEND_SETTINGS)).input.tables == ["None"]
+
+
+def test_unknown_deblend_options_are_refused():
+    cfg = deblend_configuration({"input": {"use_peak_deblending": True}})
+    with pytest.raises(ValueError, match="not settings of the installed"):
+        deblend_arguments(cfg, "/run/Logs", DEBLEND_SETTINGS)
+
+
+def test_deblend_arguments_are_settings_of_the_installed_version():
+    cfg = deblend_configuration({"input": {"markers": ["manual table", "5 HI peaks"]}})
+    known = set(deblend_settings())
+    assert {argument.split("=")[0] for argument in deblend_arguments(cfg, "/run/Logs")} <= known
