@@ -258,3 +258,27 @@ No log provided, in the function {current_function}
         return empty_log()
     else:
         return log
+
+# The steps that follow the deblending write their messages with the logging module of python.
+STEP_LOGGER = "anomalous_gas_extractor.kinematics"
+STEP_LOG_FILE = "run_kinematics.log"
+
+
+def start_step_log(cfg):
+    """Send the messages of these steps to their log file and, if verbose, to the screen."""
+    import logging
+    log = logging.getLogger(STEP_LOGGER)
+    if log.handlers:
+        return
+    log.setLevel(logging.DEBUG if "ALL" in cfg.logging.debug_functions else logging.INFO)
+    layout = logging.Formatter("%(asctime)s %(levelname)s %(name)s: %(message)s")
+    if cfg.logging.enable_log:
+        directory = f"{cfg.directories.run_directory}{cfg.logging.log_directory}"
+        os.makedirs(directory, exist_ok=True)
+        to_file = logging.FileHandler(os.path.join(directory, STEP_LOG_FILE))
+        to_file.setFormatter(layout)
+        log.addHandler(to_file)
+    if cfg.input.verbose or not cfg.logging.enable_log:
+        to_screen = logging.StreamHandler()
+        to_screen.setFormatter(layout)
+        log.addHandler(to_screen)

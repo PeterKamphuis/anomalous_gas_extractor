@@ -8,7 +8,7 @@ dynamic = ["version"]
 description = "Development Status :: 4 - Beta"
 readme = "README.md"
 license = "GPL-3.0-or-later"
-requires-python = ">=3.8"
+requires-python = ">=3.11"
 authors = [
     { name = "P. Kamphuis, R. Ianjamasimanana", email = "peterkamphuisastronomy@gmail.com" },
 ]

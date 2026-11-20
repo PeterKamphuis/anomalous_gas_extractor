@@ -26,6 +26,7 @@ from typing import Dict, List, Optional, Sequence, Tuple
 import numpy as np
 from astropy.io import fits
 from astropy.wcs import WCS, FITSFixedWarning
+from scipy import ndimage
 
 from anomalous_gas_extractor.kinematics.datacube import normalise_name, spectral_axis
 
@@ -36,6 +37,8 @@ FINAL_MASK = "final_mask.fits"
 SOURCE_DIRECTORY = "watershed_source_{}"
 # a component is dropped if less than this fraction of its voxels is still free
 MINIMUM_FREE_FRACTION = 0.5
+# voxels that share a face, an edge or a corner belong to one piece
+TOUCHING = np.ones((3, 3, 3), dtype=bool)
 # two grids are the same if their reference values and steps agree to this fraction of a pixel
 GRID_TOLERANCE = 1e-3
 FOURTH_AXIS = re.compile(r"(NAXIS|CTYPE|CRVAL|CRPIX|CDELT|CUNIT|CROTA)4|PC0?4_0?\d|PC0?\d_0?4")
@@ -75,12 +78,18 @@ def read_sofia_parameters(file_name: str) -> Dict[str, str]:
 
 
 def sofia_products(parameter_file: str) -> SofiaProducts:
-    """The cube, the mask and the output directory named in a SoFiA-2 parameter file."""
+    """The cube, the mask and the output directory named in a SoFiA-2 parameter file.
+
+    SoFiA-2 is run in the directory of its parameter file, so relative names start there.
+    """
     settings = read_sofia_parameters(parameter_file)
+    run_directory = os.path.dirname(os.path.abspath(parameter_file))
     cube_file = settings.get("input.data", "")
     if not cube_file:
         raise ValueError(f"{parameter_file} does not set input.data")
-    directory = settings.get("output.directory") or os.path.dirname(cube_file)
+    cube_file = os.path.join(run_directory, cube_file)
+    directory = settings.get("output.directory")
+    directory = os.path.join(run_directory, directory) if directory else os.path.dirname(cube_file)
     base = settings.get("output.filename") or os.path.splitext(os.path.basename(cube_file))[0]
     return SofiaProducts(cube_file, os.path.join(directory, base + SOFIA_MASK_SUFFIX), directory)
 
@@ -190,6 +199,61 @@ def assemble_labels(sofia_mask: np.ndarray, final_masks: Dict[int, np.ndarray],
     return labels, components
 
 
+def _pixel(labels: np.ndarray, celestial: WCS, ra_deg: float,
+           dec_deg: float) -> Optional[Tuple[int, int]]:
+    """Row and column of a position on the sky, None outside the cube."""
+    x, y = celestial.world_to_pixel_values(ra_deg, dec_deg)
+    column, row = int(round(float(x))), int(round(float(y)))
+    if not (0 <= row < labels.shape[1] and 0 <= column < labels.shape[2]):
+        return None
+    return row, column
+
+
+def _brightest(values: np.ndarray, spectrum: np.ndarray) -> Optional[int]:
+    """The value (> 0) on a line of sight that holds most of its flux, None if there is none."""
+    flux = np.clip(np.nan_to_num(spectrum), 0.0, None)
+    candidates = [int(value) for value in np.unique(values) if value > 0]
+    if not candidates:
+        return None
+    return max(candidates, key=lambda value: flux[values == value].sum())
+
+
+def separate_pieces(labels: np.ndarray, data: np.ndarray, celestial: WCS,
+                    components: List[Component],
+                    known_sources: Dict[str, Tuple[float, float]]) -> None:
+    """Divide a component whose known sources lie in pieces that do not touch.
+
+    The deblending can give one label to separate pieces of gas. Each piece of
+    such a component that holds a known source becomes a component; pieces
+    without a known source stay with the first one.
+    """
+    by_label = {component.label: component for component in components}
+    positions: Dict[int, List[Tuple[int, int]]] = {}
+    for ra_deg, dec_deg in known_sources.values():
+        pixel = _pixel(labels, celestial, ra_deg, dec_deg)
+        if pixel is None:
+            continue
+        label = _brightest(labels[:, pixel[0], pixel[1]], data[:, pixel[0], pixel[1]])
+        if label is not None:
+            positions.setdefault(label, []).append(pixel)
+    for label, pixels in positions.items():
+        if len(pixels) < 2:
+            continue
+        pieces, _ = ndimage.label(labels == label, structure=TOUCHING)
+        occupied: List[int] = []
+        for row, column in pixels:
+            piece = _brightest(pieces[:, row, column], data[:, row, column])
+            if piece not in occupied:
+                occupied.append(piece)
+        parent = by_label[label]
+        for piece in occupied[1:]:
+            new_label = max(component.label for component in components) + 1
+            labels[pieces == piece] = new_label
+            components.append(Component(new_label, "", parent.source_id, parent.deblend_label))
+            logger.info("detection %d, component %s: a separate piece with its own known "
+                        "source becomes a component", parent.source_id, parent.deblend_label)
+
+
 def name_components(labels: np.ndarray, data: np.ndarray, celestial: WCS,
                     components: List[Component],
                     known_sources: Dict[str, Tuple[float, float]]) -> None:
@@ -201,18 +265,15 @@ def name_components(labels: np.ndarray, data: np.ndarray, celestial: WCS,
     """
     by_label = {component.label: component for component in components}
     for name, (ra_deg, dec_deg) in known_sources.items():
-        x, y = celestial.world_to_pixel_values(ra_deg, dec_deg)
-        column, row = int(round(float(x))), int(round(float(y)))
-        if not (0 <= row < labels.shape[1] and 0 <= column < labels.shape[2]):
+        pixel = _pixel(labels, celestial, ra_deg, dec_deg)
+        if pixel is None:
             logger.warning("%s lies outside the cube", name)
             continue
-        on_sight = labels[:, row, column]
-        flux = np.clip(np.nan_to_num(data[:, row, column]), 0.0, None)
-        candidates = [int(value) for value in np.unique(on_sight) if value > 0]
-        if not candidates:
+        label = _brightest(labels[:, pixel[0], pixel[1]], data[:, pixel[0], pixel[1]])
+        if label is None:
             logger.warning("%s: no detected gas at its position", name)
             continue
-        component = by_label[max(candidates, key=lambda value: flux[on_sight == value].sum())]
+        component = by_label[label]
         if component.name:
             logger.warning("%s and %s are in the same component; it keeps the name %s",
                            name, component.name, component.name)

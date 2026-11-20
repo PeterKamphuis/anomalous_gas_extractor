@@ -1,9 +1,8 @@
 Rotating discs and anomalous gas
 ================================
 
-``anomalous_gas_extractor/anomalous_gas_extractor.py`` separates the gas of every
-galaxy in a data cube into a regularly rotating disc and anomalous gas. It is
-run with
+AGE separates the gas of every galaxy in a data cube into a regularly rotating
+disc and anomalous gas. It is run with
 
 .. code-block:: text
 
@@ -17,18 +16,19 @@ the anomalous gas are measured.
 The steps are run in the following order; each one writes its results to disk and the
 next one reads them, so they can also be run one at a time:
 
-=============  ==============================================================
-``sofia``      source finding with SoFiA-2
-``deblend``    deblending of the detections with deblend_sofia_detections
-``components`` one mask with a label for every component
-``rmax``       kinematic centre and outer radius of the regular rotation
-               (``r_max``) of every component with Kinemetry; which components
-               host a rotating disc
-``pyfat``      tilted-ring models with pyFAT of the rotating discs that span
-               at least three beams
-``hi_mass``    HI mass inside and outside the rotating discs
-``figures``    figures of all steps
-=============  ==============================================================
+==============  ==============================================================
+``sofia``       source finding with SoFiA-2
+``deblend``     deblending of the detections with deblend_sofia_detections
+``components``  the deblended components are named after the known galaxies
+                and selected; one mask with a label for every component
+``rmax``        kinematic centre and outer radius of the regular rotation
+                (``r_max``) of every component with Kinemetry; which components
+                host a rotating disc
+``pyfat``       tilted-ring models with pyFAT of the rotating discs that span
+                at least three beams
+``hi_mass``     HI mass inside and outside the rotating discs
+``figures``     figures of all steps
+==============  ==============================================================
 
 SoFiA-2, deblend_sofia_detections, Kinemetry and pyFAT are used as they are
 installed; the program only writes their input and reads their output. All
@@ -45,8 +45,8 @@ configuration file:
    deblend:
      options:                                # any setting of deblend_sofia_detections
        input:
-         manual_optical_image: [optical.fits]
-         use_peak_deblending: true
+         markers: [optical image, 5 HI peaks]
+         optical_images: [optical.fits]
    components:
      only_named: true
    kinematics:
@@ -72,15 +72,32 @@ also be given on the command line, e.g. ``hi_mass.distance_mpc=49``.
 
 The settings are those of AGE (``input``, ``directories``, ``internal``, ...)
 and one section for every step that is added: ``deblend``, ``components``,
-``kinematics``, ``pyfat``, ``hi_mass`` and ``figures``. The modules of these
-steps are in ``anomalous_gas_extractor/kinematics``.
+``kinematics``, ``pyfat``, ``hi_mass`` and ``figures``. All settings and their
+defaults are in ``anomalous_gas_extractor/config/config.py``, the steps are
+started from ``anomalous_gas_extractor/run_scripts/run_scripts.py`` and the
+modules of the steps that follow the deblending are in
+``anomalous_gas_extractor/kinematics``.
 
 Test data
 ---------
 
-``test_data/HCG16A`` holds a small cube with the HI of the galaxy HCG 16A, the
-table with its position, a parameter file for SoFiA-2 and the configuration
-file ``HCG16A.yml``; see the ``README.md`` in that directory.
+The directory ``test_data`` of the repository holds two small cubes of the
+compact group HCG 16 (MeerKAT, 15 arcsec resolution), each with the table of
+its galaxies, a parameter file for SoFiA-2, a configuration file and a
+``README.md`` with the results that are expected:
+
+* ``test_data/HCG16AB``: the galaxies HCG 16A and HCG 16B, whose HI is
+  connected. This is a fast test of all steps, including the deblending; the
+  tilted-ring models are left out and it takes one to two minutes.
+* ``test_data/HCG16A``: the galaxy HCG 16A alone, with its tilted-ring model
+  (some tens of minutes).
+
+Both are also run by the test suite, without the tilted-ring models, if
+SoFiA-2 and Kinemetry are installed:
+
+.. code-block:: text
+
+   KINEMETRY_PATH=/directory/with/kinemetry.py pytest tests/test_end_to_end.py
 
 Output
 ------
@@ -104,13 +121,32 @@ Step deblend
 
 The step starts deblend_sofia_detections on the output of SoFiA-2. The settings
 under ``deblend.options`` are passed on to it unchanged, in the layout of its own
-configuration file; this is the place for the markers, the optical image, the
-region in which counterparts are searched, and so on. The names of these
-settings differ between versions of deblend_sofia_detections: a setting that
-the installed version does not have is refused with the list of the settings it
-does have. The program itself only sets the SoFiA-2 parameter file, the run
-directory, the log file and the table of known sources
-(``input.known_source_table``).
+configuration file; this is the place for the markers (``input.markers``), the
+optical image (``input.optical_images``), the region in which counterparts are
+searched (``general.counterpart_region``), and so on. A setting that
+deblend_sofia_detections does not have is refused with the list of the settings
+it does have. AGE itself only sets the SoFiA-2 parameter
+file, the run directory, the log file, the SoFiA-2 program (``internal.sofia``)
+and the tables of known sources (``input.known_source_table``).
+
+Without ``deblend.options`` the defaults of deblend_sofia_detections are used:
+the markers are found on an optical image that is downloaded, and on the five
+brightest HI peaks. This needs internet access. The galaxies of
+``input.known_source_table`` are used as markers only if ``manual table`` is
+one of the markers. To deblend on an optical image of your own, the positions
+of the known galaxies and the HI peaks, without downloading anything:
+
+.. code-block:: yaml
+
+   input:
+     known_source_table: galaxies.csv
+   deblend:
+     options:
+       input:
+         markers: [optical image, manual table, 8 HI peaks]
+         optical_images: [optical.fits]
+       general:
+         internet_repository: ['None']
 
 Step components
 ---------------
@@ -123,6 +159,9 @@ the grid of the cube, ``components/component_labels.fits``:
 * a detection that was deblended contributes the components of its final mask,
   any other detection is one component. ``components.sources`` limits the mask
   to the listed detections (their numbers in the SoFiA-2 mask);
+* if the deblending gave one label to pieces of gas that do not touch, and
+  objects of ``input.known_source_table`` lie in different pieces, each of
+  these pieces is a component;
 * a component is named after the object of ``input.known_source_table`` that it
   holds: the object belongs to the component with the largest flux on the line
   of sight through its position. The labels follow the order of the table; the
@@ -163,11 +202,13 @@ Requirements
 * Kinemetry (Krajnovic et al. 2006), the Python version distributed by its
   author, and its dependency ``plotbin``. It is not on PyPI; give its directory
   with ``kinematics.kinemetry_path`` unless it is installed in the environment.
-* pyFAT 1.0.1 or later for the catalogue columns ``r_max``, ``xpos_min/max``
-  and ``ypos_min/max``, with TiRiFiC and SoFiA-2. Until 1.0.1 is released on
-  PyPI it is installed from the Beta branch of the pyFAT repository. The
-  commands are set with ``internal.pyfat``, ``internal.tirific`` and
+* pyFAT 1.2.0 or later, which reads the catalogue columns ``r_max``,
+  ``xpos_min/max`` and ``ypos_min/max``, with TiRiFiC and SoFiA-2. It is
+  installed from the Beta branch of the pyFAT repository
+  (``pip install git+https://github.com/PeterKamphuis/pyFAT-astro.git@Beta``).
+  The commands are set with ``internal.pyfat``, ``internal.tirific`` and
   ``internal.sofia``.
+* deblend_sofia_detections 1.1.1 or later.
 
 Step rmax
 ---------
