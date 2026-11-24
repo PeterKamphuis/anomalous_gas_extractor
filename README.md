@@ -51,10 +51,6 @@ You might have to restart the env:
 
   	source anomalous_gas_extractor_venv/bin/activate.csh
 
-AGE needs pyFAT 1.2.0 or later, which reads the radius `r_max` from its catalogue. Install it from the Beta branch of pyFAT before installing AGE:
-
-    pip install git+https://github.com/PeterKamphuis/pyFAT-astro.git@Beta
-
 Once you have installed anomalous_gas_extractor you can check that it has been installed properly by running anomalous_gas_extractor as.
 
   	AGE -v

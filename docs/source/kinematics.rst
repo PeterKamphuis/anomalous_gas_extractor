@@ -200,15 +200,15 @@ Requirements
 ------------
 
 * Kinemetry (Krajnovic et al. 2006), the Python version distributed by its
-  author, and its dependency ``plotbin``. It is not on PyPI; give its directory
-  with ``kinematics.kinemetry_path`` unless it is installed in the environment.
+  author. It is not on PyPI; give its directory with
+  ``kinematics.kinemetry_path`` unless it is installed in the environment. Its
+  dependency ``plotbin`` is installed by pip together with AGE.
+* SoFiA-2 and TiRiFiC. The commands are set with ``internal.sofia`` and
+  ``internal.tirific``.
 * pyFAT 1.2.0 or later, which reads the catalogue columns ``r_max``,
-  ``xpos_min/max`` and ``ypos_min/max``, with TiRiFiC and SoFiA-2. It is
-  installed from the Beta branch of the pyFAT repository
-  (``pip install git+https://github.com/PeterKamphuis/pyFAT-astro.git@Beta``).
-  The commands are set with ``internal.pyfat``, ``internal.tirific`` and
-  ``internal.sofia``.
-* deblend_sofia_detections 1.1.1 or later.
+  ``xpos_min/max`` and ``ypos_min/max``, and deblend_sofia_detections 1.1.1 or
+  later. Both are installed by pip together with AGE. The command of pyFAT is
+  set with ``internal.pyfat``.
 
 Step rmax
 ---------
