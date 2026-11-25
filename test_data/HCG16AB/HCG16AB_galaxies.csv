@@ -1,0 +1,4 @@
+#Name,RA,DEC,Velocity,sma,smb,PA
+#-,deg,deg,km/s,arcsec,arcsec,deg
+HCG16A,32.35253,-10.13592,4040.0,41.7,29.7,95.0
+HCG16B,32.33687,-10.13306,4034.1,53.1,25.6,74.0

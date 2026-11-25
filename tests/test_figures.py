@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 from omegaconf import OmegaConf
 
-from anomalous_gas_extractor.kinematics.configuration import Configuration
+from anomalous_gas_extractor.config.config import defaults
 from anomalous_gas_extractor.kinematics import (fat, figure_data, figures, pipeline, pv_figures,
                                                 slices)
 
@@ -19,7 +19,7 @@ NEED_MODELS = ["models", "model_comparison"]
 
 def configuration(cube_files, run_directory):
     cube_file, mask_file = cube_files
-    cfg = OmegaConf.structured(Configuration)
+    cfg = OmegaConf.structured(defaults)
     cfg.directories.run_directory = str(run_directory) + "/"
     cfg.kinematics.cube = cube_file
     cfg.kinematics.mask = mask_file

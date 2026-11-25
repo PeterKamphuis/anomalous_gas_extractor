@@ -13,9 +13,9 @@ A176) at a resolution of 16.8 x 12.9 arcsec.
 
 ## Running the test
 
-SoFiA-2, TiRiFiC, pyFAT and Kinemetry have to be installed. Run in a copy of
-this directory, because the output is written next to the input and AGE
-rewrites the parameter file of SoFiA-2:
+SoFiA-2, TiRiFiC and Kinemetry have to be installed. Run in a copy of this
+directory, because the output is written next to the input and AGE rewrites
+the parameter file of SoFiA-2:
 
 ```
 cp -r test_data/HCG16A /path/to/work/HCG16A
@@ -35,7 +35,7 @@ model of pyFAT some tens of minutes.
 ## Expected result
 
 The main results are in `component_summary.csv`; the figures are in `figures/`.
-With SoFiA-2 2.6, pyFAT 1.0.1 and a distance of 49 Mpc:
+With SoFiA-2 2.6, pyFAT 1.2.0 and a distance of 49 Mpc:
 
 | Quantity | Value |
 |---|---|

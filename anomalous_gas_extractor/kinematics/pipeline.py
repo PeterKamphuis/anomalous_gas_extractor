@@ -27,6 +27,7 @@ import numpy as np
 from astropy.io import fits
 from omegaconf import OmegaConf
 
+from anomalous_gas_extractor.config.functions import first_source_table
 from anomalous_gas_extractor.kinematics import (components, coverage_test, fat, hi_mass,
                                                 kinemetry_rings)
 from anomalous_gas_extractor.kinematics.centre import kinematic_centre
@@ -129,7 +130,7 @@ def _cube_file(cfg) -> str:
         return _absolute(cfg.kinematics.cube, cfg)
     if cfg.cube_name is None:
         raise ValueError("give the data cube with kinematics.cube or cube_name")
-    return os.path.join(cfg.directories.data_directory, cfg.cube_name)
+    return _absolute(os.path.join(cfg.directories.data_directory, cfg.cube_name), cfg)
 
 
 @functools.lru_cache(maxsize=1)
@@ -184,10 +185,8 @@ def read_centre_table(table_file: str) -> Dict[str, Tuple[float, float]]:
 
 
 def _known_source_table(cfg) -> Optional[str]:
-    known = cfg.input.known_source_table
-    if known[0].lower() == "none":
-        return None
-    return _absolute(known if isinstance(known, str) else known[0], cfg)
+    table = first_source_table(cfg)
+    return None if table is None else _absolute(table, cfg)
 
 
 def _centre_table(cfg) -> Dict[str, Tuple[float, float]]:
@@ -306,7 +305,9 @@ def run_components(cfg) -> List[components.Component]:
                                                final_masks, cfg.components.sources)
     table = _known_source_table(cfg)
     known = read_source_table(table) if table else {}
-    components.name_components(labels, data, components.celestial_wcs(header), parts, known)
+    celestial = components.celestial_wcs(header)
+    components.separate_pieces(labels, data, celestial, parts, known)
+    components.name_components(labels, data, celestial, parts, known)
     labels, parts = components.order_components(labels, parts, list(known),
                                                 cfg.components.only_named)
 
@@ -436,7 +437,6 @@ def _log_component(result: ComponentResult) -> None:
 
 def run_rmax(cfg) -> List[ComponentResult]:
     """Derive r_max of all components and classify them; writes the r_max tables."""
-    
     kinemetry_rings.set_kinemetry_path(cfg.kinematics.kinemetry_path)
     kinemetry_rings.load_kinemetry()
     cube = load_cube(cfg)

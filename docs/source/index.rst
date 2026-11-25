@@ -1,5 +1,5 @@
-Welcome to anomalous_gas_extractor' documentation!
-=================================
+Welcome to anomalous_gas_extractor's documentation!
+===================================================
 **anomalous_gas_extractor** is a python collection of various packages that are meant to automatically separate anomalous gas from HI data cubes.
 
 
