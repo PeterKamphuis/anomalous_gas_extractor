@@ -36,7 +36,7 @@ of a full run and are left out: the step `pyfat` is not in `input.steps_to_run`,
 so the disc of each galaxy is the ellipse of Kinemetry with semi-major axis
 `r_max`. To include the models, give
 `input.steps_to_run=[sofia,deblend,components,rmax,pyfat,hi_mass,figures]`;
-TiRiFiC and pyFAT then have to be installed too.
+TiRiFiC then has to be installed too.
 
 The same test is part of the test suite:
 

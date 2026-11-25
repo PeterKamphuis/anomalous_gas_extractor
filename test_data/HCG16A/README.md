@@ -13,10 +13,9 @@ A176) at a resolution of 16.8 x 12.9 arcsec.
 
 ## Running the test
 
-SoFiA-2, TiRiFiC, pyFAT (version 1.2.0 or later) and Kinemetry have to be
-installed. Run in a copy of
-this directory, because the output is written next to the input and AGE
-rewrites the parameter file of SoFiA-2:
+SoFiA-2, TiRiFiC and Kinemetry have to be installed. Run in a copy of this
+directory, because the output is written next to the input and AGE rewrites
+the parameter file of SoFiA-2:
 
 ```
 cp -r test_data/HCG16A /path/to/work/HCG16A
