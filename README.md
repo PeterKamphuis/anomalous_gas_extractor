@@ -102,7 +102,7 @@ In the GitHub repository the directory `test_data` of the repository holds two s
 * `test_data/HCG16AB`: two galaxies whose HI is connected. A fast test of all steps, including the deblending, that takes one to two minutes (the tilted-ring models are left out).
 * `test_data/HCG16A`: one galaxy with its tilted-ring model (some tens of minutes).
 
-These tests can be ran with in there respective directories by invoking 'AGE configuration-file=<HCG16X>.yml. Before running the tests make sure to set the the kinemetry path in the yml file.
+These tests can be ran with in there respective directories by invoking 'AGE configuration-file=<HCG16X>.yml. Before running the tests make sure to set the kinemetry path in the yml file.
 
 The tests directory contains a set of numererical tests that can be ran with:
 
